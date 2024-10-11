@@ -1,0 +1,24 @@
+<h1>Stock Holdings</h1>
+<table>
+  <tr>
+    <th>Stock</th>
+    <th>Quantity</th>
+    <th>Purchase Price</th>
+    <th>Purchase Date</th>
+    <th>Current Price</th>
+    <th>Current Value</th>
+  </tr>
+  <% @stock_holdings.each do |holding| %>
+    <tr>
+      <td><%= holding.stock.name %> (<%= holding.stock.symbol %>)</td>
+      <td><%= holding.quantity %></td>
+      <td><%= number_to_currency(holding.purchase_price) %></td>
+      <td><%= holding.purchase_date.strftime('%Y-%m-%d %H:%M') %></td>
+      <td><%= number_to_currency(holding.current_price) %></td>
+      <td><%= number_to_currency(holding.current_value) %></td>
+    </tr>
+  <% end %>
+</table>
+<p>Total Current Value: <%= number_to_currency(@total_current_value) %></p>
+<%= link_to 'Add Stock Purchase', new_stock_holding_path %>
+

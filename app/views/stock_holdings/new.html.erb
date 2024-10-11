@@ -1,0 +1,21 @@
+<h1>New Stock Purchase</h1>
+<%= form_with(model: @stock_holding, local: true) do |form| %>
+  <div>
+    <%= form.label :stock_id, 'Stock' %><br>
+    <%= form.collection_select :stock_id, @stocks, :id, :name %>
+  </div>
+  <div>
+    <%= form.label :quantity %><br>
+    <%= form.number_field :quantity, step: 0.01 %>
+  </div>
+  <div>
+    <%= form.label :purchase_price %><br>
+    <%= form.number_field :purchase_price, step: 0.01 %>
+  </div>
+  <div>
+    <%= form.label :purchase_date %><br>
+    <%= form.datetime_select :purchase_date %>
+  </div>
+  <%= form.submit 'Record Purchase' %>
+<% end %>
+

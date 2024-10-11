@@ -1,0 +1,13 @@
+<h1>New Balance</h1>
+<%= form_with(model: @balance, local: true) do |form| %>
+  <div>
+    <%= form.label :amount %><br>
+    <%= form.number_field :amount, step: 0.01 %>
+  </div>
+  <div>
+    <%= form.label :date %><br>
+    <%= form.datetime_select :date %>
+  </div>
+  <%= form.submit 'Create Balance' %>
+<% end %>
+

@@ -1,26 +1,24 @@
-# stock-tracker
-web based stock tracker ; personal portfolio management as well
+# README
 
+This README would normally document whatever steps are necessary to get the
+application up and running.
 
-This is a [Next.js](https://nextjs.org/) project using the App Router, Tailwind CSS, and pSQL via prisma.
+Things you may want to cover:
 
-## Getting Started
+* Ruby version
 
-Use the deployed version
-    Open the [Vercel Project](https://stock-tracker-xi.vercel.app/) with your browser to see the currently deployed state.
-or use CLI:
- - First, run the development server:
+* System dependencies
 
- - ```bash
-    npm run dev
-    # or
-    yarn dev
-    # or
-    pnpm dev
-    # or
-    bun dev
-    ```
+* Configuration
 
- - Then open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* Database creation
 
+* Database initialization
 
+* How to run the test suite
+
+* Services (job queues, cache servers, search engines, etc.)
+
+* Deployment instructions
+
+* ...

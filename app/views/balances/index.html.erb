@@ -1,0 +1,17 @@
+<h1>Balances</h1>
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Amount</th>
+    <th>Gains</th>
+  </tr>
+  <% @balances.each do |balance| %>
+    <tr>
+      <td><%= balance.date.strftime('%Y-%m-%d %H:%M') %></td>
+      <td><%= number_to_currency(balance.amount) %></td>
+      <td><%= number_to_currency(balance.gains) %></td>
+    </tr>
+  <% end %>
+</table>
+<%= link_to 'Add New Balance', new_balance_path %>
+
