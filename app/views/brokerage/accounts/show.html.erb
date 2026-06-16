@@ -1,0 +1,28 @@
+<h1><%= @brokerage_account.account_name.presence || @brokerage_account.account_type %></h1>
+<p class="text-muted">
+  <%= @brokerage_account.account_type %> &middot;
+  Cash: <%= @brokerage_account.cash_balance ? number_to_currency(@brokerage_account.cash_balance) : "N/A" %>
+</p>
+
+<table>
+  <tr>
+    <th>Symbol</th>
+    <th>Description</th>
+    <th>Quantity</th>
+    <th>Avg. Purchase Price</th>
+    <th>Current Price</th>
+    <th>Current Value</th>
+  </tr>
+  <% @brokerage_account.brokerage_positions.each do |position| %>
+    <tr>
+      <td><%= position.symbol %></td>
+      <td><%= position.description %></td>
+      <td><%= position.quantity %></td>
+      <td><%= position.average_purchase_price ? number_to_currency(position.average_purchase_price) : "N/A" %></td>
+      <td><%= position.current_price ? number_to_currency(position.current_price) : "N/A" %></td>
+      <td><%= position.current_value ? number_to_currency(position.current_value) : "N/A" %></td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= button_link "Back to Accounts", brokerage_accounts_path, style: :secondary %></p>

@@ -47,7 +47,10 @@ class StockHoldingsController < ApplicationController
 
   def destroy
     @holding.destroy
-    redirect_to stock_holdings_path, notice: "Stock holding removed."
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove(@holding) }
+      format.html { redirect_to stock_holdings_path, notice: "Stock holding removed." }
+    end
   end
 
   private

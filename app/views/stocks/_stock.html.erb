@@ -1,0 +1,8 @@
+<tr id="<%= dom_id(stock) %>">
+  <td><%= stock.symbol %></td>
+  <td><%= stock.name %></td>
+  <td class="actions">
+    <%= button_link "Edit", edit_stock_path(stock), style: :secondary %>
+    <%= delete_link "Remove", stock_path(stock), confirm: "Remove #{stock.symbol}?" %>
+  </td>
+</tr>

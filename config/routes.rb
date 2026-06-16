@@ -5,12 +5,19 @@ Rails.application.routes.draw do
 
   namespace :brokerage do
     get "connect", to: "connections#new"
-    resources :accounts, only: [:index, :show]
+    get "callback", to: "connections#callback"
+    resources :accounts, only: [:index, :show] do
+      collection { post :sync }
+    end
   end
 
   namespace :banking do
     get "connect", to: "connections#new"
-    resources :accounts, only: [:index, :show]
+    post "connect", to: "connections#create"
+    post "webhook", to: "connections#webhook"
+    resources :accounts, only: [:index, :show] do
+      collection { post :sync }
+    end
   end
 
   root "balances#index"

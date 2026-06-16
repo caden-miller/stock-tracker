@@ -6,16 +6,8 @@
     <th>Gains</th>
     <th></th>
   </tr>
-  <% @balances.each do |balance| %>
-    <tr>
-      <td><%= balance.date.strftime('%Y-%m-%d') %></td>
-      <td><%= number_to_currency(balance.amount) %></td>
-      <td><%= number_to_currency(balance.gains) %></td>
-      <td class="actions">
-        <%= button_link "Edit", edit_balance_path(balance), style: :secondary %>
-        <%= delete_link "Remove", balance_path(balance), confirm: "Remove this balance?" %>
-      </td>
-    </tr>
-  <% end %>
+  <tbody id="balances">
+    <%= render @balances %>
+  </tbody>
 </table>
 <p><%= button_link "Add Balance", new_balance_path %></p>

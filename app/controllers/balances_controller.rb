@@ -30,7 +30,10 @@ class BalancesController < ApplicationController
 
   def destroy
     @balance.destroy
-    redirect_to balances_path, notice: "Balance removed."
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove(@balance) }
+      format.html { redirect_to balances_path, notice: "Balance removed." }
+    end
   end
 
   private

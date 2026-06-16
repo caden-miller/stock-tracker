@@ -1,0 +1,13 @@
+<h1>Link a Bank Account</h1>
+
+<div class="card" data-controller="plaid-link" data-plaid-link-token-value="<%= @link_token %>">
+  <p>Securely connect your bank account via Plaid. We never see or store your bank credentials.</p>
+
+  <button type="button" class="btn btn-primary" data-action="plaid-link#open">Connect Bank Account</button>
+
+  <%= form_with url: banking_connect_path, method: :post, data: { "plaid-link-target": "form" } do |f| %>
+    <%= f.hidden_field :public_token, data: { "plaid-link-target": "publicToken" } %>
+  <% end %>
+</div>
+
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>

@@ -1,0 +1,27 @@
+<h1><%= @bank_account.name %></h1>
+<p class="text-muted">
+  <%= @bank_account.account_type %> / <%= @bank_account.account_subtype %> &middot;
+  Current: <%= @bank_account.current_balance ? number_to_currency(@bank_account.current_balance) : "N/A" %> &middot;
+  Available: <%= @bank_account.available_balance ? number_to_currency(@bank_account.available_balance) : "N/A" %>
+</p>
+
+<table>
+  <tr>
+    <th>Date</th>
+    <th>Name</th>
+    <th>Category</th>
+    <th>Amount</th>
+    <th>Status</th>
+  </tr>
+  <% @bank_transactions.each do |transaction| %>
+    <tr>
+      <td><%= transaction.date.strftime("%Y-%m-%d") %></td>
+      <td><%= transaction.merchant_name.presence || transaction.name %></td>
+      <td><%= transaction.category %></td>
+      <td><%= number_to_currency(transaction.amount) %></td>
+      <td><%= transaction.pending ? content_tag(:span, "Pending", class: "badge badge-muted") : content_tag(:span, "Posted", class: "badge") %></td>
+    </tr>
+  <% end %>
+</table>
+
+<p><%= button_link "Back to Accounts", banking_accounts_path, style: :secondary %></p>

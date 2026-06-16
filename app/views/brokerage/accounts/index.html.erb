@@ -1,0 +1,35 @@
+<h1>Brokerage Accounts</h1>
+
+<% if @connection.nil? %>
+  <div class="card empty-state">
+    <p>No brokerage account linked yet.</p>
+    <%= button_link "Link a Brokerage Account", brokerage_connect_path %>
+  </div>
+<% else %>
+  <div class="card-actions">
+    <%= button_to "Sync Now", sync_brokerage_accounts_path, method: :post, class: "btn btn-secondary" %>
+    <%= button_link "Link Another Brokerage", brokerage_connect_path, style: :secondary %>
+  </div>
+
+  <% if @brokerage_accounts.none? %>
+    <div class="card empty-state">
+      <p>No accounts synced yet. Click "Sync Now" once you've finished linking.</p>
+    </div>
+  <% else %>
+    <% @brokerage_accounts.each do |account| %>
+      <div class="card">
+        <div class="card-header">
+          <h3><%= link_to account.account_name.presence || account.account_type, brokerage_account_path(account) %></h3>
+          <span class="badge<%= " badge-muted" unless account.last_synced_at %>">
+            <%= account.last_synced_at ? "Synced #{account.last_synced_at.strftime('%Y-%m-%d %H:%M')}" : "Never synced" %>
+          </span>
+        </div>
+        <p class="card-meta">
+          <%= account.account_type %> &middot;
+          Cash: <%= account.cash_balance ? number_to_currency(account.cash_balance) : "N/A" %>
+        </p>
+        <p><%= account.brokerage_positions.count %> position(s)</p>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(balance) %>">
+  <td><%= balance.date.strftime('%Y-%m-%d') %></td>
+  <td><%= number_to_currency(balance.amount) %></td>
+  <td><%= number_to_currency(balance.gains) %></td>
+  <td class="actions">
+    <%= button_link "Edit", edit_balance_path(balance), style: :secondary %>
+    <%= delete_link "Remove", balance_path(balance), confirm: "Remove this balance?" %>
+  </td>
+</tr>

@@ -1,57 +1,105 @@
 # Plaid integration service — Phase 3
 #
-# Setup:
-#   1. Sign up at https://dashboard.plaid.com/signup
-#   2. Set PLAID_CLIENT_ID, PLAID_SECRET, and PLAID_ENV in credentials or .env
-#      PLAID_ENV should be 'sandbox' for testing, 'development' or 'production' for live
-#   3. Uncomment `gem 'plaid', '~> 19.0'` in Gemfile and run `bundle install`
-#   4. Replace stubs below with real Plaid SDK calls
-#
-# Plaid supports Capital One, Bank of America, Wells Fargo, Chase, Citi, and thousands
-# more. Users connect via the Plaid Link JS widget — we never handle bank credentials.
-# Access tokens must be encrypted at rest (use Rails 7.1+ `encrypts` on PlaidItem).
+# Connects bank accounts via the Plaid Link JS widget and syncs balances/transactions
+# into the local plaid_items/bank_accounts/bank_transactions tables.
 class PlaidService
-  # def initialize(access_token)
-  #   configuration = Plaid::Configuration.new
-  #   configuration.server_index = Plaid::Configuration::Environment[ENV['PLAID_ENV']]
-  #   configuration.api_key['PLAID-CLIENT-ID'] = ENV['PLAID_CLIENT_ID']
-  #   configuration.api_key['PLAID-SECRET'] = ENV['PLAID_SECRET']
-  #   api_client = Plaid::ApiClient.new(configuration)
-  #   @client = Plaid::PlaidApi.new(api_client)
-  #   @access_token = access_token
-  # end
+  class Error < StandardError; end
 
-  # Creates a Link token to initialize the Plaid Link widget on the frontend.
-  # def self.create_link_token(user_id)
-  #   request = Plaid::LinkTokenCreateRequest.new(
-  #     user: { client_user_id: user_id.to_s },
-  #     client_name: 'Stock Tracker',
-  #     products: ['transactions'],
-  #     country_codes: ['US'],
-  #     language: 'en'
-  #   )
-  #   @client.link_token_create(request).link_token
-  # end
+  def self.client
+    configuration = Plaid::Configuration.new
+    configuration.server_index = Plaid::Configuration::Environment.fetch(ENV.fetch("PLAID_ENV", "sandbox"))
+    configuration.api_key["PLAID-CLIENT-ID"] = ENV.fetch("PLAID_CLIENT_ID")
+    configuration.api_key["PLAID-SECRET"] = ENV.fetch("PLAID_SECRET")
+    Plaid::PlaidApi.new(Plaid::ApiClient.new(configuration))
+  end
 
-  # Exchanges a public token (from Plaid Link callback) for a permanent access token.
-  # def self.exchange_public_token(public_token)
-  #   request = Plaid::ItemPublicTokenExchangeRequest.new(public_token: public_token)
-  #   @client.item_public_token_exchange(request).access_token
-  # end
+  # Creates a Link token used to initialize the Plaid Link widget on the frontend.
+  def self.create_link_token(client_user_id:)
+    request = Plaid::LinkTokenCreateRequest.new(
+      user: { client_user_id: client_user_id.to_s },
+      client_name: "Stock Tracker",
+      products: ["transactions"],
+      country_codes: ["US"],
+      language: "en"
+    )
+    client.link_token_create(request).link_token
+  rescue Plaid::ApiError => e
+    raise Error, "Plaid link token creation failed: #{e.message}"
+  end
 
-  # Fetches recent transactions for the linked item.
-  # def transactions(start_date:, end_date:)
-  #   request = Plaid::TransactionsGetRequest.new(
-  #     access_token: @access_token,
-  #     start_date: start_date,
-  #     end_date: end_date
-  #   )
-  #   @client.transactions_get(request).transactions
-  # end
+  # Exchanges a Link public_token for a permanent access_token and persists a PlaidItem.
+  def self.exchange_public_token!(public_token)
+    request = Plaid::ItemPublicTokenExchangeRequest.new(public_token: public_token)
+    response = client.item_public_token_exchange(request)
 
-  # Fetches current balances for all accounts under this item.
-  # def balances
-  #   request = Plaid::AccountsBalanceGetRequest.new(access_token: @access_token)
-  #   @client.accounts_balance_get(request).accounts
-  # end
+    PlaidItem.create!(
+      plaid_item_id: response.item_id,
+      plaid_access_token: response.access_token
+    )
+  rescue Plaid::ApiError => e
+    raise Error, "Plaid token exchange failed: #{e.message}"
+  end
+
+  def initialize(plaid_item)
+    @plaid_item = plaid_item
+    @client = self.class.client
+  end
+
+  # Fetches current balances for all accounts under this item and upserts them locally.
+  def sync_accounts!
+    request = Plaid::AccountsBalanceGetRequest.new(access_token: @plaid_item.plaid_access_token)
+    accounts = @client.accounts_balance_get(request).accounts
+
+    accounts.each do |account|
+      local_account = @plaid_item.bank_accounts.find_or_initialize_by(plaid_account_id: account.account_id)
+      local_account.update!(
+        name: account.name,
+        official_name: account.official_name,
+        account_type: account.type,
+        account_subtype: account.subtype,
+        current_balance: account.balances&.current,
+        available_balance: account.balances&.available,
+        iso_currency_code: account.balances&.iso_currency_code || "USD"
+      )
+    end
+  rescue Plaid::ApiError => e
+    raise Error, "Plaid account sync failed: #{e.message}"
+  end
+
+  # Pages through transactions_sync and upserts new/updated transactions locally.
+  def sync_transactions!
+    cursor = @plaid_item.sync_cursor
+    loop do
+      request = Plaid::TransactionsSyncRequest.new(access_token: @plaid_item.plaid_access_token, cursor: cursor)
+      response = @client.transactions_sync(request)
+
+      (response.added + response.modified).each { |transaction| upsert_transaction(transaction) }
+      response.removed.each { |removed| BankTransaction.where(plaid_transaction_id: removed.transaction_id).destroy_all }
+
+      cursor = response.next_cursor
+      break unless response.has_more
+    end
+    @plaid_item.update!(sync_cursor: cursor)
+  rescue Plaid::ApiError => e
+    raise Error, "Plaid transaction sync failed: #{e.message}"
+  end
+
+  private
+
+  def upsert_transaction(transaction)
+    bank_account = @plaid_item.bank_accounts.find_by(plaid_account_id: transaction.account_id)
+    return unless bank_account
+
+    record = bank_account.bank_transactions.find_or_initialize_by(plaid_transaction_id: transaction.transaction_id)
+    record.update!(
+      date: transaction.date,
+      name: transaction.name,
+      merchant_name: transaction.merchant_name,
+      amount: transaction.amount,
+      category: transaction.personal_finance_category&.primary,
+      subcategory: transaction.personal_finance_category&.detailed,
+      pending: transaction.pending,
+      iso_currency_code: transaction.iso_currency_code || "USD"
+    )
+  end
 end

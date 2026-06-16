@@ -95,12 +95,39 @@ a:hover {
 .navbar a {
   color: var(--color-primary-contrast);
   font-weight: 500;
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .navbar a:hover {
   opacity: 1;
   text-decoration: underline;
+}
+
+.navbar a.active {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  opacity: 1 !important;
+  text-decoration: none !important;
+  margin-right: var(--spacing-md);
+}
+
+.navbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.navbar-group-secondary {
+  margin-left: auto;
+  padding-left: var(--spacing-md);
+  border-left: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .navbar-divider {
@@ -241,6 +268,64 @@ input[type="submit"] {
 .flash-danger {
   background-color: var(--color-danger);
   color: var(--color-danger-contrast);
+}
+
+/* ==========================================================================
+   Cards — headers and metadata rows (brokerage/banking account cards)
+   ========================================================================== */
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.card-header h3 {
+  margin: 0;
+}
+
+.card-meta {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-contrast);
+}
+
+.badge-muted {
+  background-color: var(--color-border);
+  color: var(--color-muted);
+}
+
+/* ==========================================================================
+   Empty states
+   ========================================================================== */
+.empty-state {
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.empty-state p {
+  margin-bottom: var(--spacing-md);
 }
 
 /* ==========================================================================

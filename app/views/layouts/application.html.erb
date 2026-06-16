@@ -12,11 +12,16 @@
 
   <body>
     <nav class="navbar">
-      <%= link_to "Balances", balances_path %>
-      <%= link_to "Holdings", stock_holdings_path %>
-      <%= link_to "Stocks", stocks_path %>
-      <%= link_to "Link Brokerage", brokerage_connect_path %>
-      <%= link_to "Link Bank", banking_connect_path %>
+      <%= link_to "Stock Tracker", root_path, class: "navbar-brand" %>
+      <div class="navbar-group">
+        <%= link_to "Balances", balances_path, class: ("active" if current_page?(balances_path)) %>
+        <%= link_to "Holdings", stock_holdings_path, class: ("active" if current_page?(stock_holdings_path)) %>
+        <%= link_to "Stocks", stocks_path, class: ("active" if current_page?(stocks_path)) %>
+      </div>
+      <div class="navbar-group navbar-group-secondary">
+        <%= link_to "Brokerage", brokerage_accounts_path, class: ("active" if request.path.start_with?("/brokerage")) %>
+        <%= link_to "Banking", banking_accounts_path, class: ("active" if request.path.start_with?("/banking")) %>
+      </div>
     </nav>
 
     <main class="container">

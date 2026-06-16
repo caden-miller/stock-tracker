@@ -1,0 +1,12 @@
+<tr id="<%= dom_id(stock_holding) %>">
+  <td><%= stock_holding.stock.name %> (<%= stock_holding.stock.symbol %>)</td>
+  <td><%= stock_holding.quantity %></td>
+  <td><%= number_to_currency(stock_holding.purchase_price) %></td>
+  <td><%= stock_holding.purchase_date.strftime('%Y-%m-%d') %></td>
+  <td><%= stock_holding.current_price ? number_to_currency(stock_holding.current_price) : content_tag(:span, "N/A", class: "text-muted") %></td>
+  <td><%= stock_holding.current_value ? number_to_currency(stock_holding.current_value) : content_tag(:span, "N/A", class: "text-muted") %></td>
+  <td class="actions">
+    <%= button_link "Edit", edit_stock_holding_path(stock_holding), style: :secondary %>
+    <%= delete_link "Remove", stock_holding_path(stock_holding), confirm: "Remove this holding?" %>
+  </td>
+</tr>

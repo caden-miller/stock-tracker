@@ -1,15 +1,25 @@
 module Banking
   class AccountsController < ApplicationController
     # GET /banking/accounts
-    # Phase 3: list all Plaid-linked bank accounts for the current user.
     def index
-      render plain: "Bank accounts coming soon (Phase 3 — Plaid integration)"
+      @bank_accounts = BankAccount.includes(:plaid_item).order(:name)
     end
 
     # GET /banking/accounts/:id
-    # Phase 3: show transaction history for a single bank account.
     def show
-      render plain: "Bank account detail coming soon (Phase 3)"
+      @bank_account = BankAccount.find(params[:id])
+      @bank_transactions = @bank_account.bank_transactions.order(date: :desc).limit(100)
+    end
+
+    # POST /banking/accounts/sync
+    def sync
+      items = PlaidItem.all
+      if items.any?
+        items.each { |item| BankSyncJob.perform_later(item.id) }
+        redirect_to banking_accounts_path, notice: "Sync started — refresh in a few seconds."
+      else
+        redirect_to banking_connect_path, alert: "Link a bank account first."
+      end
     end
   end
 end

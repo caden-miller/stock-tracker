@@ -19,20 +19,19 @@ Branch: `update` — pushed to GitHub, not yet merged to `main`. Verified runnin
 
 ### Phase 2 — Brokerage (SnapTrade)
 - [x] Migrations for `brokerage_connections`, `brokerage_accounts`, `brokerage_positions`
-- [x] Stub `Brokerage::ConnectionsController` / `AccountsController` + routes
-- [x] Stub `SnaptradeService` with commented SDK calls
-- [ ] Real SnapTrade account creation + API keys
-- [ ] OAuth connect flow implementation
-- [ ] Background sync job
+- [x] Real `Brokerage::ConnectionsController#new/callback`, `AccountsController#index/show/sync` + routes
+- [x] Real `SnaptradeService` using the `snaptrade` gem (register!, auth_url, sync_accounts!)
+- [x] `BrokerageSyncJob` background sync job
+- [x] **Personal-tier key support:** the provisioned `SNAPTRADE_CLIENT_ID` (`PERS-...`) is a **Personal**-tier key, which auto-provisions exactly one user (the account owner) at signup and rejects `registerUser` (`"Personal SnapTrade keys are provisioned with their user automatically at signup..."`). `SnaptradeService.register!` now calls `list_snap_trade_users` first; if a user already exists (the personal-tier case) it calls `reset_snap_trade_user_secret` to obtain a fresh secret for that existing user instead of registering a new one. Business-tier keys (no pre-existing user) still fall through to normal `register_snap_trade_user`. Verified live: `/brokerage/connect` now redirects to a real SnapTrade Connection Portal URL.
 
 ### Phase 3 — Banking (Plaid)
 - [x] Migrations for `plaid_items`, `bank_accounts`, `bank_transactions`
-- [x] Stub `Banking::ConnectionsController` / `AccountsController` + routes
-- [x] Stub `PlaidService` with commented SDK calls
-- [ ] Real Plaid account + API keys
-- [ ] Plaid Link JS widget integration
-- [ ] Webhook endpoint + background sync
-- [ ] Encrypt `plaid_access_token` at rest
+- [x] Real `Banking::ConnectionsController#new/create/webhook`, `AccountsController#index/show/sync` + routes
+- [x] Real `PlaidService` using the `plaid` gem (link token, public token exchange, balances, transactions_sync)
+- [x] Plaid Link JS widget integration (CDN script + `plaid_link_controller.js` Stimulus controller, hidden-form submit on success)
+- [x] Webhook endpoint (`POST /banking/webhook`) + `BankSyncJob` background sync
+- [x] Encrypt `plaid_access_token` at rest (Active Record `encrypts`, keys sourced from `.env` via `config.active_record.encryption.*`)
+- [x] Verified live against the Plaid sandbox (`/banking/connect` successfully creates a real link_token)
 
 ### Phase 4 — Unified Dashboard
 - [ ] Not started

@@ -1,0 +1,27 @@
+<h1>Bank Accounts</h1>
+
+<% if @bank_accounts.none? %>
+  <div class="card empty-state">
+    <p>No bank account linked yet.</p>
+    <%= button_link "Link a Bank Account", banking_connect_path %>
+  </div>
+<% else %>
+  <div class="card-actions">
+    <%= button_to "Sync Now", sync_banking_accounts_path, method: :post, class: "btn btn-secondary" %>
+    <%= button_link "Link Another Bank", banking_connect_path, style: :secondary %>
+  </div>
+
+  <% @bank_accounts.each do |account| %>
+    <div class="card">
+      <div class="card-header">
+        <h3><%= link_to account.name, banking_account_path(account) %></h3>
+        <span class="badge"><%= account.account_subtype %></span>
+      </div>
+      <p class="card-meta">
+        <%= account.account_type %> &middot;
+        Current: <%= account.current_balance ? number_to_currency(account.current_balance) : "N/A" %> &middot;
+        Available: <%= account.available_balance ? number_to_currency(account.available_balance) : "N/A" %>
+      </p>
+    </div>
+  <% end %>
+<% end %>

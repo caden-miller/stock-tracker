@@ -9,20 +9,9 @@
     <th>Current Value</th>
     <th></th>
   </tr>
-  <% @stock_holdings.each do |holding| %>
-    <tr>
-      <td><%= holding.stock.name %> (<%= holding.stock.symbol %>)</td>
-      <td><%= holding.quantity %></td>
-      <td><%= number_to_currency(holding.purchase_price) %></td>
-      <td><%= holding.purchase_date.strftime('%Y-%m-%d') %></td>
-      <td><%= holding.current_price ? number_to_currency(holding.current_price) : content_tag(:span, "N/A", class: "text-muted") %></td>
-      <td><%= holding.current_value ? number_to_currency(holding.current_value) : content_tag(:span, "N/A", class: "text-muted") %></td>
-      <td class="actions">
-        <%= button_link "Edit", edit_stock_holding_path(holding), style: :secondary %>
-        <%= delete_link "Remove", stock_holding_path(holding), confirm: "Remove this holding?" %>
-      </td>
-    </tr>
-  <% end %>
+  <tbody id="stock_holdings">
+    <%= render @stock_holdings %>
+  </tbody>
 </table>
 <p>Total Current Value: <strong><%= number_to_currency(@total_current_value) %></strong></p>
 <p><%= button_link "Add Stock Purchase", new_stock_holding_path %></p>
