@@ -1,38 +1,74 @@
 # Stock Tracker — Spec Sheet
 
-## Current State (as of June 2026)
+## Status (as of 2026-06-16)
 
-### Tech Stack
-- **Rails 7.0.8** / **Ruby 3.1.2** (both outdated; target Rails 8.x / Ruby 3.3+)
-- **PostgreSQL** via `pg` gem
+Branch: `update` — pushed to GitHub, not yet merged to `main`. Verified running locally (Ruby 3.3.6, Postgres 16, seeded DB, server smoke-tested + browser-tested with Playwright).
+
+### Phase 1 — Foundation Cleanup
+- [x] Bump Ruby to 3.3.6 (`.ruby-version`, `Gemfile`)
+- [x] Fix `Balance#gains` to use `BasicYahooFinance` consistently
+- [x] Declare `current_price` / `current_value` as `attr_accessor` on `StockHolding`
+- [x] Wrap Yahoo Finance calls in error handling (verified live: Yahoo's API returned HTTP 429 in this sandbox, app degraded gracefully to "N/A" instead of a 500)
+- [x] Add model validations (Stock, StockHolding, Balance)
+- [x] Add `Stock` create/edit/destroy UI
+- [x] Add edit/destroy to Balances and StockHoldings
+- [x] Reusable UI components + color palette design system (`button_link`/`delete_link` helpers, `.card`/`.field`/`.actions`/`.flash` CSS classes, dark-mode via `prefers-color-scheme`)
+- [ ] Upgrade Rails 7.0.8 → 8.x (not yet started — bigger lift, do separately)
+- [ ] Add authentication (Devise) — gem is stubbed commented in Gemfile
+- [ ] Write/update test coverage for the new CRUD actions (existing tests predate these changes)
+
+### Phase 2 — Brokerage (SnapTrade)
+- [x] Migrations for `brokerage_connections`, `brokerage_accounts`, `brokerage_positions`
+- [x] Stub `Brokerage::ConnectionsController` / `AccountsController` + routes
+- [x] Stub `SnaptradeService` with commented SDK calls
+- [ ] Real SnapTrade account creation + API keys
+- [ ] OAuth connect flow implementation
+- [ ] Background sync job
+
+### Phase 3 — Banking (Plaid)
+- [x] Migrations for `plaid_items`, `bank_accounts`, `bank_transactions`
+- [x] Stub `Banking::ConnectionsController` / `AccountsController` + routes
+- [x] Stub `PlaidService` with commented SDK calls
+- [ ] Real Plaid account + API keys
+- [ ] Plaid Link JS widget integration
+- [ ] Webhook endpoint + background sync
+- [ ] Encrypt `plaid_access_token` at rest
+
+### Phase 4 — Unified Dashboard
+- [ ] Not started
+
+### Known Bugs / Technical Debt (resolved unless noted)
+1. ~~`Balance#gains` referenced a missing gem~~ — fixed
+2. ~~`current_price`/`current_value` ad-hoc instance vars~~ — fixed
+3. ~~No `Stock` create/edit UI~~ — fixed
+4. ~~Missing CRUD actions~~ — fixed
+5. ~~No error handling around Yahoo Finance calls~~ — fixed
+6. No authentication — anyone can access and mutate data (Phase 1 remaining item)
+7. Rails 7.0 is approaching EOL — Ruby is now current (3.3.6), Rails upgrade still pending
+8. ~~Zero styling~~ — fixed (design system added)
+9. **New finding:** the unofficial `basic_yahoo_finance` gem is unreliable in this environment — Yahoo's endpoint returned HTTP 429 during testing. This validates the SnapTrade/Plaid migration path; consider a paid quote API (Alpha Vantage, Polygon.io) as a stopgap if live prices are needed before Phase 2 lands.
+
+### Tech Stack (current)
+- **Rails 7.0.8** / **Ruby 3.3.6**
+- **PostgreSQL 16** via `pg` gem
 - **Hotwire** (Turbo + Stimulus) via importmap (no build step)
-- **Sprockets** for assets
-- **BasicYahooFinance** gem for live stock price quotes
+- **Sprockets** for assets, plain CSS design system (no Tailwind yet)
+- **BasicYahooFinance** gem for live stock price quotes (unreliable — see above)
 - **dotenv-rails** for environment variables
-- No authentication, no styling framework, no job queue wired up
 
-### Existing Models & Schema
+### Schema
 
 | Table | Columns |
 |---|---|
 | `stocks` | `symbol`, `name` |
 | `stock_holdings` | `stock_id (FK)`, `quantity`, `purchase_price`, `purchase_date` |
 | `balances` | `amount`, `date` |
-
-### Existing Features
-- **Stock Holdings** — manually track equity positions (ticker, quantity, buy price, buy date); index fetches live price from Yahoo Finance per holding and shows total portfolio value
-- **Balances** — record a cash balance snapshot; `Balance#gains` attempts to calculate unrealized gains between balance snapshots
-- **Seed data** — AAPL, GOOGL, MSFT pre-seeded; no UI to add new stocks
-
-### Known Bugs / Technical Debt
-1. `Balance#gains` references `StockQuote::Stock.quote` (a different gem) while the controller uses `BasicYahooFinance` — one of these will crash at runtime
-2. `holding.current_price` / `holding.current_value` are assigned as ad-hoc instance variables in the controller but never declared as model attributes — fragile
-3. No `Stock` create/edit UI; the only stocks available are the three seeded ones
-4. Missing CRUD actions: no edit/update/destroy on `Balances` or `StockHoldings`
-5. No error handling around Yahoo Finance API calls (network failure = 500)
-6. No authentication — anyone can access and mutate data
-7. Rails 7.0 / Ruby 3.1 are both EOL or approaching EOL
-8. Zero styling; plain HTML tables with no layout
+| `brokerage_connections` *(Phase 2, unused)* | `snaptrade_user_id`, `snaptrade_auth_token`, `broker_name` |
+| `brokerage_accounts` *(Phase 2, unused)* | `brokerage_connection_id (FK)`, account details |
+| `brokerage_positions` *(Phase 2, unused)* | `brokerage_account_id (FK)`, position details |
+| `plaid_items` *(Phase 3, unused)* | `plaid_item_id`, `plaid_access_token`, institution info |
+| `bank_accounts` *(Phase 3, unused)* | `plaid_item_id (FK)`, balance info |
+| `bank_transactions` *(Phase 3, unused)* | `bank_account_id (FK)`, transaction info |
 
 ---
 

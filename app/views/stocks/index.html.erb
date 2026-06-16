@@ -9,11 +9,11 @@
     <tr>
       <td><%= stock.symbol %></td>
       <td><%= stock.name %></td>
-      <td>
-        <%= link_to "Edit", edit_stock_path(stock) %> |
-        <%= link_to "Remove", stock_path(stock), data: { turbo_method: :delete, turbo_confirm: "Remove #{stock.symbol}?" } %>
+      <td class="actions">
+        <%= button_link "Edit", edit_stock_path(stock), style: :secondary %>
+        <%= delete_link "Remove", stock_path(stock), confirm: "Remove #{stock.symbol}?" %>
       </td>
     </tr>
   <% end %>
 </table>
-<%= link_to "Add Stock", new_stock_path %>
+<p><%= button_link "Add Stock", new_stock_path %></p>

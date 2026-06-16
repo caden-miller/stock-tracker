@@ -13,3 +13,243 @@
  *= require_tree .
  *= require_self
  */
+
+/* ==========================================================================
+   Design tokens
+   ========================================================================== */
+:root {
+  --color-bg: #FFFFFF;
+  --color-text: #18181b;
+  --color-primary: #34623F;
+  --color-primary-contrast: #FFFFFF;
+  --color-secondary: #9EC1A3;
+  --color-secondary-contrast: #18181b;
+  --color-danger: #C05746;
+  --color-danger-contrast: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-border: #e4e4e7;
+  --color-muted: #71717a;
+
+  --radius: 6px;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #18181b;
+    --color-text: #FFFFFF;
+    --color-surface: #232327;
+    --color-border: #3f3f46;
+    --color-muted: #a1a1aa;
+    --color-primary-contrast: #FFFFFF;
+    --color-secondary-contrast: #18181b;
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+main, .container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+}
+
+h1, h2, h3 {
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Navbar
+   ========================================================================== */
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.navbar a {
+  color: var(--color-primary-contrast);
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.navbar a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.navbar-divider {
+  display: none; /* separators are spacing-driven, not literal pipes */
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  text-decoration: none;
+  filter: brightness(0.95);
+}
+
+.btn-primary,
+input[type="submit"] {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-contrast);
+  border-color: var(--color-secondary);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-danger-contrast);
+  border-color: var(--color-danger);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  padding: 0.25rem 0.5rem;
+}
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th, td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+th {
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-contrast);
+  font-weight: 600;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.actions a {
+  margin-right: var(--spacing-sm);
+}
+
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+.field {
+  margin-bottom: var(--spacing-md);
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+select {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+input[type="submit"] {
+  border-radius: var(--radius);
+  padding: 0.5rem 1.25rem;
+}
+
+/* ==========================================================================
+   Flash / alerts
+   ========================================================================== */
+.flash {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius);
+  margin-bottom: var(--spacing-md);
+  background-color: var(--color-secondary);
+  color: var(--color-secondary-contrast);
+}
+
+.flash-danger {
+  background-color: var(--color-danger);
+  color: var(--color-danger-contrast);
+}
+
+/* ==========================================================================
+   Utility
+   ========================================================================== */
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}

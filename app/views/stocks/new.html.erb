@@ -1,20 +1,23 @@
 <h1>Add Stock</h1>
-<%= form_with(model: @stock) do |form| %>
-  <% if @stock.errors.any? %>
-    <ul>
-      <% @stock.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
-    </ul>
+<div class="card">
+  <%= form_with(model: @stock) do |form| %>
+    <% if @stock.errors.any? %>
+      <div class="flash flash-danger">
+        <ul>
+          <% @stock.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <div class="field">
+      <%= form.label :symbol %>
+      <%= form.text_field :symbol, placeholder: "e.g. AAPL" %>
+    </div>
+    <div class="field">
+      <%= form.label :name %>
+      <%= form.text_field :name, placeholder: "e.g. Apple Inc." %>
+    </div>
+    <%= form.submit "Add Stock" %>
   <% end %>
-  <div>
-    <%= form.label :symbol %><br>
-    <%= form.text_field :symbol, placeholder: "e.g. AAPL" %>
-  </div>
-  <div>
-    <%= form.label :name %><br>
-    <%= form.text_field :name, placeholder: "e.g. Apple Inc." %>
-  </div>
-  <%= form.submit "Add Stock" %>
-<% end %>
-<%= link_to "Back", stocks_path %>
+</div>

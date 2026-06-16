@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_10_11_043324) do
+ActiveRecord::Schema[7.0].define(version: 2026_06_16_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,6 +19,87 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_11_043324) do
     t.datetime "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "bank_accounts", force: :cascade do |t|
+    t.bigint "plaid_item_id", null: false
+    t.string "plaid_account_id", null: false
+    t.string "name"
+    t.string "official_name"
+    t.string "account_type"
+    t.string "account_subtype"
+    t.decimal "current_balance", precision: 15, scale: 2
+    t.decimal "available_balance", precision: 15, scale: 2
+    t.string "iso_currency_code", default: "USD"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["plaid_account_id"], name: "index_bank_accounts_on_plaid_account_id", unique: true
+    t.index ["plaid_item_id"], name: "index_bank_accounts_on_plaid_item_id"
+  end
+
+  create_table "bank_transactions", force: :cascade do |t|
+    t.bigint "bank_account_id", null: false
+    t.string "plaid_transaction_id", null: false
+    t.date "date", null: false
+    t.string "name"
+    t.string "merchant_name"
+    t.decimal "amount", precision: 15, scale: 2
+    t.string "category"
+    t.string "subcategory"
+    t.boolean "pending", default: false
+    t.string "iso_currency_code", default: "USD"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bank_account_id", "date"], name: "index_bank_transactions_on_bank_account_id_and_date"
+    t.index ["bank_account_id"], name: "index_bank_transactions_on_bank_account_id"
+    t.index ["plaid_transaction_id"], name: "index_bank_transactions_on_plaid_transaction_id", unique: true
+  end
+
+  create_table "brokerage_accounts", force: :cascade do |t|
+    t.bigint "brokerage_connection_id", null: false
+    t.string "snaptrade_account_id", null: false
+    t.string "account_name"
+    t.string "account_number"
+    t.string "account_type"
+    t.decimal "cash_balance", precision: 15, scale: 2
+    t.datetime "last_synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["brokerage_connection_id"], name: "index_brokerage_accounts_on_brokerage_connection_id"
+  end
+
+  create_table "brokerage_connections", force: :cascade do |t|
+    t.string "snaptrade_user_id", null: false
+    t.string "snaptrade_auth_token", null: false
+    t.string "broker_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "brokerage_positions", force: :cascade do |t|
+    t.bigint "brokerage_account_id", null: false
+    t.string "symbol", null: false
+    t.string "description"
+    t.decimal "quantity", precision: 15, scale: 6
+    t.decimal "average_purchase_price", precision: 15, scale: 4
+    t.decimal "current_price", precision: 15, scale: 4
+    t.decimal "current_value", precision: 15, scale: 2
+    t.datetime "last_synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["brokerage_account_id", "symbol"], name: "index_brokerage_positions_on_brokerage_account_id_and_symbol", unique: true
+    t.index ["brokerage_account_id"], name: "index_brokerage_positions_on_brokerage_account_id"
+  end
+
+  create_table "plaid_items", force: :cascade do |t|
+    t.string "plaid_item_id", null: false
+    t.string "plaid_access_token", null: false
+    t.string "institution_id"
+    t.string "institution_name"
+    t.string "webhook_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["plaid_item_id"], name: "index_plaid_items_on_plaid_item_id", unique: true
   end
 
   create_table "stock_holdings", force: :cascade do |t|
@@ -38,5 +119,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_11_043324) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "bank_accounts", "plaid_items"
+  add_foreign_key "bank_transactions", "bank_accounts"
+  add_foreign_key "brokerage_accounts", "brokerage_connections"
+  add_foreign_key "brokerage_positions", "brokerage_accounts"
   add_foreign_key "stock_holdings", "stocks"
 end

@@ -1,13 +1,14 @@
 <h1>New Balance</h1>
-<%= form_with(model: @balance, local: true) do |form| %>
-  <div>
-    <%= form.label :amount %><br>
-    <%= form.number_field :amount, step: 0.01 %>
-  </div>
-  <div>
-    <%= form.label :date %><br>
-    <%= form.datetime_select :date %>
-  </div>
-  <%= form.submit 'Create Balance' %>
-<% end %>
-
+<div class="card">
+  <%= form_with(model: @balance) do |form| %>
+    <div class="field">
+      <%= form.label :amount %>
+      <%= form.number_field :amount, step: 0.01 %>
+    </div>
+    <div class="field">
+      <%= form.label :date %>
+      <%= form.datetime_select :date %>
+    </div>
+    <%= form.submit "Create Balance" %>
+  <% end %>
+</div>
