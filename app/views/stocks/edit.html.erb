@@ -1,0 +1,20 @@
+<h1>Edit Stock</h1>
+<%= form_with(model: @stock) do |form| %>
+  <% if @stock.errors.any? %>
+    <ul>
+      <% @stock.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  <% end %>
+  <div>
+    <%= form.label :symbol %><br>
+    <%= form.text_field :symbol %>
+  </div>
+  <div>
+    <%= form.label :name %><br>
+    <%= form.text_field :name %>
+  </div>
+  <%= form.submit "Update Stock" %>
+<% end %>
+<%= link_to "Back", stocks_path %>

@@ -4,14 +4,18 @@
     <th>Date</th>
     <th>Amount</th>
     <th>Gains</th>
+    <th></th>
   </tr>
   <% @balances.each do |balance| %>
     <tr>
-      <td><%= balance.date.strftime('%Y-%m-%d %H:%M') %></td>
+      <td><%= balance.date.strftime('%Y-%m-%d') %></td>
       <td><%= number_to_currency(balance.amount) %></td>
       <td><%= number_to_currency(balance.gains) %></td>
+      <td>
+        <%= link_to "Edit", edit_balance_path(balance) %> |
+        <%= link_to "Remove", balance_path(balance), data: { turbo_method: :delete, turbo_confirm: "Remove this balance?" } %>
+      </td>
     </tr>
   <% end %>
 </table>
-<%= link_to 'Add New Balance', new_balance_path %>
-
+<%= link_to "Add Balance", new_balance_path %>

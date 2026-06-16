@@ -11,6 +11,18 @@
   </head>
 
   <body>
+    <nav>
+      <%= link_to "Balances", balances_path %> |
+      <%= link_to "Holdings", stock_holdings_path %> |
+      <%= link_to "Stocks", stocks_path %> |
+      <%= link_to "Link Brokerage", brokerage_connect_path %> |
+      <%= link_to "Link Bank", banking_connect_path %>
+    </nav>
+
+    <% if notice %>
+      <p><%= notice %></p>
+    <% end %>
+
     <%= yield %>
   </body>
 </html>

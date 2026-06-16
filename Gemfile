@@ -77,3 +77,18 @@ gem 'dotenv-rails'
 # For stock price API
 gem 'basic_yahoo_finance'
 
+# Phase 2 — Brokerage integration via SnapTrade (supports Fidelity, Schwab, IBKR, etc.)
+# Sign up: https://snaptrade.com/developers
+# gem 'snaptrade-ruby'
+
+# Phase 3 — Banking integration via Plaid (Capital One, BofA, Wells Fargo, Chase, etc.)
+# Sign up: https://dashboard.plaid.com/signup
+# gem 'plaid', '~> 19.0'
+
+# Phase 1 — Authentication (uncomment and run `rails generate devise:install` to enable)
+# gem 'devise'
+
+# Charts for the unified dashboard (Phase 4)
+# gem 'chartkick'
+# gem 'groupdate'
+
