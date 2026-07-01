@@ -8,9 +8,9 @@
 <% end %>
 
 <%#
-  Deterministic category color: named overrides for the common Plaid personal
-  finance categories, otherwise a stable pick from the palette so unknown
-  categories always get the same (and consistent) color across every section.
+  Deterministic category color: named overrides for common Truthifi spending
+  categories, otherwise a stable hash-pick from the palette so unknown
+  categories always get the same color across every section.
 %>
 <% category_palette = %w[#5AC8FA #A66CFF #FF6B9D #2DD4BF #FFB000 #F97316 #8B5CF6 #14B8A6 #E11D48 #64748B #0EA5E9 #EAB308] %>
 <% category_overrides = {
@@ -82,7 +82,9 @@
       </div>
     <% else %>
       <div class="dash-hero__note">
-        <%= link_to "Disconnect", truthifi_disconnect_path, method: :delete, data: { confirm: "Disconnect Truthifi?" }, class: "text-muted" %>
+        <%= button_to "Disconnect Truthifi", truthifi_disconnect_path, method: :delete,
+              class: "btn btn-link text-muted",
+              data: { turbo_confirm: "Disconnect Truthifi? You can reconnect at any time." } %>
       </div>
     <% end %>
   </section>

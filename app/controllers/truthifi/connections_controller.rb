@@ -1,6 +1,6 @@
 module Truthifi
   class ConnectionsController < ApplicationController
-    REDIRECT_URI = -> { ENV.fetch("TRUTHIFI_REDIRECT_URI", "http://localhost:3001/truthifi/callback") }
+    REDIRECT_URI = -> { ENV.fetch("TRUTHIFI_REDIRECT_URI", "http://localhost:3000/truthifi/callback") }
 
     # GET /truthifi/connect — registers client (once) and redirects to Truthifi OAuth consent
     def new
@@ -61,12 +61,11 @@ module Truthifi
 
     # DELETE /truthifi/disconnect
     def destroy
-      conn = TruthifiConnection.current
-      if conn
+      TruthifiConnection.all.each do |conn|
         TruthifiOauth.revoke(client_id: conn.client_id, token: conn.access_token) rescue nil
         conn.destroy
       end
-      redirect_to dashboard_path, notice: "Truthifi disconnected."
+      redirect_to dashboard_path, notice: "Truthifi disconnected. Visit /truthifi/connect to reconnect."
     end
 
     private
