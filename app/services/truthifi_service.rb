@@ -33,7 +33,7 @@ class TruthifiService
     sync_accounts!
     sync_positions!
     sync_transactions!
-  rescue MCPClient::Error => e
+  rescue MCPClient::Errors::MCPError => e
     raise SyncError, "Truthifi MCP error: #{e.message}"
   end
 
@@ -88,7 +88,7 @@ class TruthifiService
 
     result = client.call_tool(tool_name, {})
     parse_mcp_result(result)
-  rescue MCPClient::Errors::Error, StandardError => e
+  rescue MCPClient::Errors::MCPError, StandardError => e
     Rails.logger.error("[TruthifiService] Tool call failed (#{tool_name}): #{e.class}: #{e.message}")
     raise SyncError, "Tool call failed (#{tool_name}): #{e.message}"
   end
