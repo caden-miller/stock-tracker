@@ -1,0 +1,268 @@
+<%# dashboard.css is bundled into application.css via require_tree . — no separate link needed %>
+<% content_for :head do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartkick@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
+<% end %>
+
+<%#
+  Deterministic category color: named overrides for the common Plaid personal
+  finance categories, otherwise a stable pick from the palette so unknown
+  categories always get the same (and consistent) color across every section.
+%>
+<% category_palette = %w[#5AC8FA #A66CFF #FF6B9D #2DD4BF #FFB000 #F97316 #8B5CF6 #14B8A6 #E11D48 #64748B #0EA5E9 #EAB308] %>
+<% category_overrides = {
+     "FOOD_AND_DRINK" => "#FF6B9D",
+     "TRAVEL" => "#5AC8FA",
+     "TRANSPORTATION" => "#0EA5E9",
+     "GENERAL_MERCHANDISE" => "#A66CFF",
+     "ENTERTAINMENT" => "#F97316",
+     "RENT_AND_UTILITIES" => "#FFB000",
+     "LOAN_PAYMENTS" => "#E11D48",
+     "MEDICAL" => "#2DD4BF",
+     "PERSONAL_CARE" => "#14B8A6",
+     "GENERAL_SERVICES" => "#8B5CF6",
+     "BANK_FEES" => "#64748B",
+   } %>
+<% category_color = lambda do |cat|
+     key = cat.to_s
+     category_overrides[key] || category_palette[key.chars.sum(&:ord) % category_palette.length]
+   end %>
+<% category_label = ->(cat) { cat.to_s.tr("_", " ").split.map(&:capitalize).join(" ").presence || "Uncategorized" } %>
+
+<div class="dashboard">
+
+  <% if @syncing %>
+    <div class="sync-banner" data-controller="auto-refresh">
+      <div class="sync-banner__bar"></div>
+      <span>Syncing your accounts…</span>
+    </div>
+  <% end %>
+
+  <%# ── 1. Hero ─────────────────────────────────────────────────────────── %>
+  <section class="dash-hero">
+    <div class="dash-hero__main">
+      <% if @portfolio.brokerage_accounts.any? || @portfolio.bank_accounts.any? || @portfolio.net_worth.nonzero? %>
+        <p class="dash-hero__label">Net Worth</p>
+        <p class="dash-hero__networth num"><%= number_to_currency(@portfolio.net_worth) %></p>
+        <div class="dash-hero__splits">
+          <div>
+            <p class="dash-hero__label">Brokerage</p>
+            <p class="dash-hero__split-value num"><%= number_to_currency(@portfolio.brokerage_total) %></p>
+          </div>
+          <div>
+            <p class="dash-hero__label">Banking</p>
+            <p class="dash-hero__split-value num"><%= number_to_currency(@portfolio.bank_total) %></p>
+          </div>
+        </div>
+      <% else %>
+        <p class="dash-hero__label">Get started</p>
+        <p class="dash-hero__empty">Connect Truthifi to see your net worth</p>
+      <% end %>
+    </div>
+
+    <div class="dash-hero__aside">
+      <p class="dash-hero__synced">
+        <% if @last_synced_at %>
+          Synced <%= time_ago_in_words(@last_synced_at) %> ago
+        <% else %>
+          Never synced
+        <% end %>
+      </p>
+      <%= button_to "Sync Now", dashboard_sync_path, method: :post,
+            class: "btn-sync", form_class: "dash-hero__sync", data: { turbo: false } %>
+    </div>
+
+    <% unless @truthifi_configured %>
+      <div class="dash-hero__note">
+        <%= link_to "Connect Truthifi →", truthifi_connect_path, class: "btn-connect" %>
+        <span class="text-muted">to sync BofA, Empower, Fidelity &amp; Capital One</span>
+      </div>
+    <% else %>
+      <div class="dash-hero__note">
+        <%= link_to "Disconnect", truthifi_disconnect_path, method: :delete, data: { confirm: "Disconnect Truthifi?" }, class: "text-muted" %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ── 2. Account cards ────────────────────────────────────────────────── %>
+  <% if @portfolio.brokerage_accounts.any? || @portfolio.bank_accounts.any? %>
+    <section>
+      <h2>Accounts</h2>
+      <div class="acct-row">
+        <% @portfolio.brokerage_accounts.each do |account| %>
+          <div class="acct-card">
+            <div class="acct-card__top">
+              <span class="acct-card__name"><%= account.account_name.presence || account.account_type.presence || "Brokerage" %></span>
+              <span class="acct-card__kind acct-card__kind--brokerage">Brokerage</span>
+            </div>
+            <span class="acct-card__inst"><%= account.display_institution %></span>
+            <span class="acct-card__value num"><%= number_to_currency(@portfolio.account_total(account)) %></span>
+          </div>
+        <% end %>
+
+        <% @portfolio.bank_accounts.each do |account| %>
+          <% liability = PortfolioService::LIABILITY_ACCOUNT_TYPES.include?(account.account_type) %>
+          <div class="acct-card">
+            <div class="acct-card__top">
+              <span class="acct-card__name"><%= account.name.presence || account.official_name.presence || "Account" %></span>
+              <span class="acct-card__kind <%= liability ? "acct-card__kind--liability" : "acct-card__kind--bank" %>">
+                <%= account.account_subtype.presence || account.account_type.presence || "Bank" %>
+              </span>
+            </div>
+            <span class="acct-card__inst"><%= account.display_institution %></span>
+            <span class="acct-card__value num"><%= number_to_currency(@portfolio.bank_account_value(account)) %></span>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# ── 3. Money flow (Sankey) ──────────────────────────────────────────── %>
+  <section>
+    <h2>Money Flow</h2>
+    <div class="dash-panel">
+      <% if @sankey_data[:nodes].empty? %>
+        <div class="sankey-placeholder">No money flow to show yet — sync your accounts to see income and spending.</div>
+      <% else %>
+        <div class="sankey-wrap"
+             data-controller="sankey"
+             data-sankey-data-value="<%= @sankey_data.to_json %>">
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ── 4. Spending breakdown ───────────────────────────────────────────── %>
+  <section>
+    <div class="section-head">
+      <h2>Spending — Last 30 Days</h2>
+      <span class="text-muted num"><%= number_to_currency(@spending_by_category.values.sum) %> total</span>
+    </div>
+
+    <% if @spending_by_category.present? %>
+      <% spend_total = @spending_by_category.values.sum.to_f %>
+      <div class="dash-grid-2">
+        <div class="dash-panel">
+          <%= bar_chart @spending_by_category.transform_keys { |k| category_label.call(k) },
+                colors: ["#5AC8FA"], thousands: ",", prefix: "$", library: { maintainAspectRatio: false } %>
+        </div>
+        <div class="dash-panel">
+          <table class="spend-legend">
+            <tbody>
+              <% @spending_by_category.each do |category, amount| %>
+                <% pct = spend_total.positive? ? (amount / spend_total * 100) : 0 %>
+                <tr>
+                  <td>
+                    <span class="spend-legend__cat">
+                      <span class="spend-legend__swatch" style="background: <%= category_color.call(category) %>"></span>
+                      <%= category_label.call(category) %>
+                    </span>
+                    <div class="spend-bar">
+                      <div class="spend-bar__fill" style="width: <%= pct.round(1) %>%; background: <%= category_color.call(category) %>"></div>
+                    </div>
+                  </td>
+                  <td class="spend-legend__amt num"><%= number_to_currency(amount) %></td>
+                  <td class="spend-legend__pct num"><%= pct.round(0) %>%</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% else %>
+      <div class="dash-panel empty-state"><p>No spending recorded in the last 30 days.</p></div>
+    <% end %>
+  </section>
+
+  <%# ── 5. Monthly cash flow ────────────────────────────────────────────── %>
+  <section>
+    <h2>Cash Flow — Last 6 Months</h2>
+    <div class="dash-panel">
+      <% if @monthly_cash_flow.present? %>
+        <%= column_chart [
+              { name: "Income", data: @monthly_cash_flow.transform_values { |v| v[:income] } },
+              { name: "Expenses", data: @monthly_cash_flow.transform_values { |v| v[:expenses] } }
+            ], colors: ["#00C805", "#FF5000"], thousands: ",", prefix: "$",
+               library: { maintainAspectRatio: false } %>
+      <% else %>
+        <p class="text-muted">No cash flow data yet.</p>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ── 6. Top holdings ─────────────────────────────────────────────────── %>
+  <% if @top_holdings.any? %>
+    <section>
+      <h2>Top Holdings</h2>
+      <table class="holdings-table">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th class="num">Qty</th>
+            <th class="num">Price</th>
+            <th class="num">Value</th>
+            <th class="num">Gain / Loss</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @top_holdings.each do |pos| %>
+            <% cost_basis = (pos.quantity || 0) * (pos.average_purchase_price || 0) %>
+            <% gain = (pos.current_value || 0) - cost_basis %>
+            <% gain_pct = cost_basis.positive? ? (gain / cost_basis * 100) : nil %>
+            <tr>
+              <td>
+                <div class="sym"><%= pos.symbol %></div>
+                <div class="desc"><%= pos.description %></div>
+              </td>
+              <td class="num"><%= number_with_precision(pos.quantity, precision: 2, strip_insignificant_zeros: true) %></td>
+              <td class="num"><%= number_to_currency(pos.current_price) %></td>
+              <td class="num"><%= number_to_currency(pos.current_value) %></td>
+              <td class="num <%= gain.negative? ? "neg" : "pos" %>">
+                <%= "+" if gain.positive? %><%= number_to_currency(gain) %>
+                <% if gain_pct %>
+                  <span style="font-size: 0.78rem;">(<%= "+" if gain.positive? %><%= number_with_precision(gain_pct, precision: 1) %>%)</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
+  <% end %>
+
+  <%# ── 7. Recent transactions ──────────────────────────────────────────── %>
+  <% if @recent_transactions.any? %>
+    <section>
+      <h2>Recent Transactions</h2>
+      <div class="dash-panel">
+        <ul class="txn-list">
+          <% @recent_transactions.each do |txn| %>
+            <% expense = (txn.amount || 0).positive? %>
+            <li class="txn">
+              <div class="txn__date">
+                <span class="day"><%= txn.date.strftime("%-d") %></span>
+                <%= txn.date.strftime("%b") %>
+              </div>
+              <div class="txn__body">
+                <div class="txn__merchant"><%= txn.merchant_name.presence || txn.name.presence || "Transaction" %></div>
+                <div class="txn__meta">
+                  <% if txn.category.present? %>
+                    <span class="cat-badge" style="background: <%= category_color.call(txn.category) %>"><%= category_label.call(txn.category) %></span>
+                  <% end %>
+                  <% if txn.pending %><span class="txn__pending">Pending</span><% end %>
+                </div>
+              </div>
+              <div class="txn__amt <%= expense ? "neg" : "pos" %>">
+                <%= expense ? "−" : "+" %><%= number_to_currency((txn.amount || 0).abs) %>
+              </div>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    </section>
+  <% end %>
+
+</div>

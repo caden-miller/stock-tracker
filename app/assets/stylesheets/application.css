@@ -62,9 +62,15 @@ body {
 }
 
 main, .container {
-  max-width: 960px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: var(--spacing-lg);
+}
+
+/* Narrower layout for simple CRUD pages */
+.page-narrow {
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 h1, h2, h3 {
@@ -86,6 +92,7 @@ a:hover {
 .navbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--color-primary);
@@ -121,7 +128,21 @@ a:hover {
 .navbar-group {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--spacing-md);
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .navbar-group {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 }
 
 .navbar-group-secondary {
@@ -261,8 +282,8 @@ input[type="submit"] {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius);
   margin-bottom: var(--spacing-md);
-  background-color: var(--color-secondary);
-  color: var(--color-secondary-contrast);
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
 }
 
 .flash-danger {
@@ -337,4 +358,18 @@ input[type="submit"] {
 
 .text-danger {
   color: var(--color-danger);
+}
+
+/* ==========================================================================
+   Loading spinner
+   ========================================================================== */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 1em; height: 1em;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: -2px;
 }

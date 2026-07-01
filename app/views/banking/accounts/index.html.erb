@@ -2,13 +2,13 @@
 
 <% if @bank_accounts.none? %>
   <div class="card empty-state">
-    <p>No bank account linked yet.</p>
-    <%= button_link "Link a Bank Account", banking_connect_path %>
+    <p>No bank accounts synced yet.</p>
+    <%= button_link "Connect via Truthifi", truthifi_connect_path %>
   </div>
 <% else %>
   <div class="card-actions">
     <%= button_to "Sync Now", sync_banking_accounts_path, method: :post, class: "btn btn-secondary" %>
-    <%= button_link "Link Another Bank", banking_connect_path, style: :secondary %>
+    <%= button_link "Connect via Truthifi", truthifi_connect_path, style: :secondary %>
   </div>
 
   <% @bank_accounts.each do |account| %>

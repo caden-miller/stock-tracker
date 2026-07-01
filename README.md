@@ -1,24 +1,33 @@
-# README
+# Finance Monitor
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Personal finance dashboard built with Ruby on Rails. Pulls live data from BofA, Empower, Fidelity, Capital One and 18,000+ other institutions via **Truthifi MCP** — a read-only financial aggregator. Displays net worth, money-flow Sankey, spending breakdown, cash-flow charts, top holdings, and recent transactions.
 
-Things you may want to cover:
+## Stack
 
-* Ruby version
+- Ruby 3.3.x / Rails 7.0.8
+- PostgreSQL
+- Hotwire (Turbo + Stimulus) — live UX without a JS build step
+- importmap-rails — no webpack/esbuild
+- ruby-mcp-client — MCP JSON-RPC bridge to Truthifi
+- Chartkick / D3-Sankey — charts
 
-* System dependencies
+## Setup
 
-* Configuration
+```bash
+bundle install
+cp .env.example .env      # fill in DB credentials (see .env.example)
+rails db:create db:migrate
+rails server               # http://localhost:3000
+```
 
-* Database creation
+Then visit `/truthifi/connect` to link your financial accounts via the Truthifi OAuth flow.
 
-* Database initialization
+## Environment variables
 
-* How to run the test suite
+See `.env.example` for all required keys and how to generate them.
 
-* Services (job queues, cache servers, search engines, etc.)
+## Architecture
 
-* Deployment instructions
+All financial data flows through Truthifi's MCP endpoint. On connect, the app performs OAuth 2.1 + PKCE dynamic client registration and stores an encrypted access/refresh token. `TruthifiSyncJob` calls `TruthifiService#sync_all!` to pull accounts, positions, and transactions into local Postgres tables. The dashboard reads only from local tables, so it loads fast.
 
-* ...
+See `CLAUDE.md` for developer notes and `SPEC.md` for the full roadmap.

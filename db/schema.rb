@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
+ActiveRecord::Schema[7.0].define(version: 2026_07_01_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,8 +22,8 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
   end
 
   create_table "bank_accounts", force: :cascade do |t|
-    t.bigint "plaid_item_id", null: false
-    t.string "plaid_account_id", null: false
+    t.bigint "plaid_item_id"
+    t.string "plaid_account_id"
     t.string "name"
     t.string "official_name"
     t.string "account_type"
@@ -33,13 +33,16 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
     t.string "iso_currency_code", default: "USD"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "institution_name"
+    t.string "truthifi_account_id"
     t.index ["plaid_account_id"], name: "index_bank_accounts_on_plaid_account_id", unique: true
     t.index ["plaid_item_id"], name: "index_bank_accounts_on_plaid_item_id"
+    t.index ["truthifi_account_id"], name: "index_bank_accounts_on_truthifi_account_id", unique: true, where: "(truthifi_account_id IS NOT NULL)"
   end
 
   create_table "bank_transactions", force: :cascade do |t|
     t.bigint "bank_account_id", null: false
-    t.string "plaid_transaction_id", null: false
+    t.string "plaid_transaction_id"
     t.date "date", null: false
     t.string "name"
     t.string "merchant_name"
@@ -50,14 +53,25 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
     t.string "iso_currency_code", default: "USD"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "truthifi_transaction_id"
     t.index ["bank_account_id", "date"], name: "index_bank_transactions_on_bank_account_id_and_date"
     t.index ["bank_account_id"], name: "index_bank_transactions_on_bank_account_id"
     t.index ["plaid_transaction_id"], name: "index_bank_transactions_on_plaid_transaction_id", unique: true
+    t.index ["truthifi_transaction_id"], name: "index_bank_transactions_on_truthifi_transaction_id", unique: true, where: "(truthifi_transaction_id IS NOT NULL)"
+  end
+
+  create_table "benchmark_prices", force: :cascade do |t|
+    t.string "symbol", null: false
+    t.date "date", null: false
+    t.decimal "close_price", precision: 15, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["symbol", "date"], name: "index_benchmark_prices_on_symbol_and_date", unique: true
   end
 
   create_table "brokerage_accounts", force: :cascade do |t|
-    t.bigint "brokerage_connection_id", null: false
-    t.string "snaptrade_account_id", null: false
+    t.bigint "brokerage_connection_id"
+    t.string "snaptrade_account_id"
     t.string "account_name"
     t.string "account_number"
     t.string "account_type"
@@ -65,7 +79,10 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
     t.datetime "last_synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "institution_name"
+    t.string "truthifi_account_id"
     t.index ["brokerage_connection_id"], name: "index_brokerage_accounts_on_brokerage_connection_id"
+    t.index ["truthifi_account_id"], name: "index_brokerage_accounts_on_truthifi_account_id", unique: true, where: "(truthifi_account_id IS NOT NULL)"
   end
 
   create_table "brokerage_connections", force: :cascade do |t|
@@ -116,6 +133,16 @@ ActiveRecord::Schema[7.0].define(version: 2026_06_16_051537) do
   create_table "stocks", force: :cascade do |t|
     t.string "symbol"
     t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "truthifi_connections", force: :cascade do |t|
+    t.string "client_id", null: false
+    t.string "access_token", null: false
+    t.string "refresh_token"
+    t.datetime "token_expires_at"
+    t.string "redirect_uri", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

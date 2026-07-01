@@ -1,0 +1,414 @@
+/* ==========================================================================
+   Dashboard — Robinhood x Quicken monitoring layer
+   Builds on the design tokens in application.css
+   ========================================================================== */
+:root {
+  --dash-green: #00C805;   /* Robinhood green — gains / income */
+  --dash-red: #FF5000;     /* Robinhood red-orange — losses / expenses */
+  --dash-blue: #5AC8FA;    /* accounts / neutral */
+  --dash-hero-bg: #0B0B0F;
+  --dash-hero-text: #FFFFFF;
+  --dash-hero-muted: rgba(255, 255, 255, 0.6);
+  --dash-gap: 1.5rem;
+}
+
+/* Let the dashboard breathe wider than the default 960px container. */
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard section {
+  margin-bottom: 2.5rem;
+}
+
+.dashboard h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-md);
+  letter-spacing: -0.01em;
+}
+
+.dashboard .section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.dashboard .section-head h2 { margin: 0; }
+
+.num { font-variant-numeric: tabular-nums; }
+.pos { color: var(--dash-green); }
+.neg { color: var(--dash-red); }
+
+/* ==========================================================================
+   Sync banner (shown while a background sync is in progress)
+   ========================================================================== */
+.sync-banner {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(0, 200, 5, 0.10);
+  border: 1px solid rgba(0, 200, 5, 0.25);
+  color: #0A7D1E;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.sync-banner__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 40%;
+  background: var(--dash-green);
+  border-radius: 999px;
+  animation: sync-banner-slide 1.2s ease-in-out infinite;
+}
+@keyframes sync-banner-slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.dash-hero {
+  background: var(--dash-hero-bg);
+  color: var(--dash-hero-text);
+  border-radius: 14px;
+  padding: 2rem 2.25rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--dash-gap);
+}
+
+.dash-hero__label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: var(--dash-hero-muted);
+  margin: 0 0 0.35rem;
+}
+
+.dash-hero__networth {
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-hero__empty {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--dash-hero-muted);
+}
+
+.dash-hero__splits {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.dash-hero__split-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.dash-hero__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  text-align: right;
+}
+
+.dash-hero__synced {
+  color: var(--dash-hero-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.dash-hero__sync .btn-sync {
+  background: var(--dash-green);
+  color: #04210A;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.dash-hero__sync .btn-sync:hover { filter: brightness(1.08); }
+.dash-hero__sync { margin: 0; }
+
+.dash-hero__note {
+  width: 100%;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  background: rgba(255, 176, 0, 0.14);
+  color: #FFCF66;
+  font-size: 0.85rem;
+}
+.dash-hero__note code {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+.btn-connect {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  background: var(--dash-green);
+  color: #000;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius);
+  text-decoration: none;
+  margin-right: 0.6rem;
+}
+.btn-connect:hover { filter: brightness(1.1); }
+
+/* ==========================================================================
+   Account cards — horizontal scroll row
+   ========================================================================== */
+.acct-row {
+  display: flex;
+  gap: var(--spacing-md);
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.acct-card {
+  flex: 0 0 auto;
+  min-width: 210px;
+  scroll-snap-align: start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.acct-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.acct-card__kind {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+.acct-card__kind--brokerage { background: rgba(90, 200, 250, 0.18); color: #1B7FA8; }
+.acct-card__kind--bank { background: rgba(0, 200, 5, 0.14); color: #0A7D1E; }
+.acct-card__kind--liability { background: rgba(255, 80, 0, 0.14); color: #B23800; }
+
+.acct-card__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acct-card__inst {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.acct-card__value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   Panels / grid
+   ========================================================================== */
+.dash-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+}
+
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: var(--dash-gap);
+  align-items: start;
+}
+
+/* ==========================================================================
+   Sankey money flow
+   ========================================================================== */
+.sankey-wrap {
+  width: 100%;
+  min-height: 320px;
+}
+.sankey-wrap svg { display: block; width: 100%; height: auto; }
+.sankey-node-label {
+  font-size: 12px;
+  fill: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.sankey-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/* ==========================================================================
+   Spending legend
+   ========================================================================== */
+.spend-legend {
+  width: 100%;
+  border: none;
+  background: transparent;
+}
+.spend-legend td {
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.55rem 0.5rem;
+  vertical-align: middle;
+}
+.spend-legend tr:last-child td { border-bottom: none; }
+.spend-legend__swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 0.5rem;
+  vertical-align: -1px;
+}
+.spend-legend__cat { font-weight: 500; }
+.spend-legend__amt {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.spend-legend__pct {
+  text-align: right;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  width: 3.5rem;
+}
+.spend-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+  margin-top: 0.35rem;
+}
+.spend-bar__fill { height: 100%; border-radius: 999px; }
+
+/* ==========================================================================
+   Category badge (Quicken-style colored pill)
+   ========================================================================== */
+.cat-badge {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff;
+}
+
+/* ==========================================================================
+   Holdings table
+   ========================================================================== */
+.holdings-table td, .holdings-table th { padding: 0.65rem 1rem; }
+.holdings-table .sym { font-weight: 700; }
+.holdings-table .desc { color: var(--color-muted); font-size: 0.82rem; }
+.holdings-table .num { text-align: right; }
+.holdings-table th.num { text-align: right; }
+
+/* ==========================================================================
+   Transactions list
+   ========================================================================== */
+.txn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.txn {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr auto;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 0.7rem 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.txn:last-child { border-bottom: none; }
+.txn__date {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  text-align: center;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.txn__date .day { display: block; font-size: 1.05rem; font-weight: 700; color: var(--color-text); }
+.txn__body { min-width: 0; }
+.txn__merchant {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.txn__meta { font-size: 0.78rem; color: var(--color-muted); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.txn__amt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.txn__pending {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0 0.4rem;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 820px) {
+  .dash-grid-2 { grid-template-columns: 1fr; }
+  .dash-hero { flex-direction: column; align-items: flex-start; }
+  .dash-hero__aside { align-items: flex-start; text-align: left; }
+}

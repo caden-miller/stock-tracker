@@ -74,21 +74,14 @@ end
 # For .env file usage
 gem 'dotenv-rails'
 
-# For stock price API
-gem 'basic_yahoo_finance'
-
-# Phase 2 — Brokerage integration via SnapTrade (supports Fidelity, Schwab, IBKR, etc.)
-# Sign up: https://snaptrade.com/developers
-gem "snaptrade"
-
-# Phase 3 — Banking integration via Plaid (Capital One, BofA, Wells Fargo, Chase, etc.)
-# Sign up: https://dashboard.plaid.com/signup
-gem "plaid"
+# Truthifi MCP — financial data aggregation (BofA, Empower, Fidelity, Capital One, 18k+ institutions)
+# Set TRUTHIFI_API_TOKEN in .env (from truthifi.com → Settings → API)
+gem "ruby-mcp-client"
 
 # Phase 1 — Authentication (uncomment and run `rails generate devise:install` to enable)
 # gem 'devise'
 
 # Charts for the unified dashboard (Phase 4)
-# gem 'chartkick'
-# gem 'groupdate'
+gem "chartkick"
+gem "groupdate"
 

@@ -34,7 +34,13 @@ Branch: `update` — pushed to GitHub, not yet merged to `main`. Verified runnin
 - [x] Verified live against the Plaid sandbox (`/banking/connect` successfully creates a real link_token)
 
 ### Phase 4 — Unified Dashboard
-- [ ] Not started
+- [x] Balances page shows real brokerage account (cash + positions) and bank account balances, plus total net worth
+- [x] `benchmark_prices` table + `BenchmarkPriceService` — pulls 5y of daily historical closes for SPY/QQQ/AGG/VTI from Yahoo's chart endpoint (`rake benchmarks:sync`)
+- [x] `rake portfolio:snapshot` — upserts today's net worth (brokerage + bank) into `balances`, so the chart has a real history. Not yet wired to a scheduler — run it from cron/Solid Queue recurring once a day for it to actually accumulate history
+- [x] Balances page renders a Chartkick line chart of portfolio % return vs. S&P 500 / Nasdaq 100 / US Bonds / Total US Stock Market, all rebased to 0% on the earliest balance snapshot
+- [ ] Recent transactions from all linked bank accounts
+- [ ] Top holdings by current value
+- [ ] Sector/asset allocation breakdown
 
 ### Known Bugs / Technical Debt (resolved unless noted)
 1. ~~`Balance#gains` referenced a missing gem~~ — fixed
@@ -68,6 +74,18 @@ Branch: `update` — pushed to GitHub, not yet merged to `main`. Verified runnin
 | `plaid_items` *(Phase 3, unused)* | `plaid_item_id`, `plaid_access_token`, institution info |
 | `bank_accounts` *(Phase 3, unused)* | `plaid_item_id (FK)`, balance info |
 | `bank_transactions` *(Phase 3, unused)* | `bank_account_id (FK)`, transaction info |
+| `benchmark_prices` *(Phase 4)* | `symbol`, `date`, `close_price` — historical daily closes for SPY/QQQ/AGG/VTI |
+
+### Recurring tasks (not yet scheduled)
+
+Two rake tasks support the Phase 4 balances/performance feature but aren't wired to a scheduler yet:
+
+```
+rake benchmarks:sync     # fetch new daily closes for SPY, QQQ, AGG, VTI
+rake portfolio:snapshot  # upsert today's net worth (brokerage + bank) into balances
+```
+
+Run both once a day (e.g. via cron, or a Solid Queue recurring task after the Rails 8 upgrade) so the performance chart on `/balances` actually accumulates history. Until then, the `balances` table only grows when one of these is run manually or a user adds a row by hand.
 
 ---
 

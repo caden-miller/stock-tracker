@@ -2,7 +2,7 @@ module Banking
   class AccountsController < ApplicationController
     # GET /banking/accounts
     def index
-      @bank_accounts = BankAccount.includes(:plaid_item).order(:name)
+      @bank_accounts = BankAccount.order(:name)
     end
 
     # GET /banking/accounts/:id
@@ -13,13 +13,8 @@ module Banking
 
     # POST /banking/accounts/sync
     def sync
-      items = PlaidItem.all
-      if items.any?
-        items.each { |item| BankSyncJob.perform_later(item.id) }
-        redirect_to banking_accounts_path, notice: "Sync started — refresh in a few seconds."
-      else
-        redirect_to banking_connect_path, alert: "Link a bank account first."
-      end
+      TruthifiSyncJob.perform_later
+      redirect_to banking_accounts_path, notice: "Sync started — refresh in a few seconds."
     end
   end
 end

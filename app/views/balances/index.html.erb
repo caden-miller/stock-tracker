@@ -1,13 +1,79 @@
-<h1>Balances</h1>
-<table>
-  <tr>
-    <th>Date</th>
-    <th>Amount</th>
-    <th>Gains</th>
-    <th></th>
-  </tr>
-  <tbody id="balances">
-    <%= render @balances %>
-  </tbody>
-</table>
-<p><%= button_link "Add Balance", new_balance_path %></p>
+<% content_for :head do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartkick@5"></script>
+<% end %>
+
+<div class="page-narrow">
+  <h1>Balances</h1>
+</div>
+
+<h2>Net Worth</h2>
+<div class="card">
+  <p class="card-meta">
+    Brokerage: <%= number_to_currency(@portfolio.brokerage_total) %> &middot;
+    Banking: <%= number_to_currency(@portfolio.bank_total) %>
+  </p>
+  <h3><%= number_to_currency(@portfolio.net_worth) %></h3>
+</div>
+
+<% if @portfolio.brokerage_accounts.any? %>
+  <h3>Brokerage Accounts</h3>
+  <% @portfolio.brokerage_accounts.each do |account| %>
+    <div class="card">
+      <div class="card-header">
+        <h3><%= link_to account.account_name.presence || account.account_type, brokerage_account_path(account) %></h3>
+        <span class="badge<%= " badge-muted" unless account.last_synced_at %>">
+          <%= account.last_synced_at ? "Synced #{account.last_synced_at.strftime('%Y-%m-%d %H:%M')}" : "Never synced" %>
+        </span>
+      </div>
+      <p class="card-meta">
+        Cash: <%= number_to_currency(account.cash_balance || 0) %> &middot;
+        Positions: <%= number_to_currency(@portfolio.account_total(account) - (account.cash_balance || 0)) %>
+      </p>
+      <p><strong><%= number_to_currency(@portfolio.account_total(account)) %></strong></p>
+    </div>
+  <% end %>
+<% end %>
+
+<% if @portfolio.bank_accounts.any? %>
+  <h3>Bank Accounts</h3>
+  <% @portfolio.bank_accounts.each do |account| %>
+    <div class="card">
+      <div class="card-header">
+        <h3><%= link_to account.name, banking_account_path(account) %></h3>
+        <span class="badge"><%= account.account_subtype %></span>
+      </div>
+      <p><strong><%= number_to_currency(@portfolio.bank_account_value(account)) %></strong></p>
+    </div>
+  <% end %>
+<% end %>
+
+<h2>Performance vs. Benchmarks</h2>
+<div class="card">
+  <% if @performance_series.present? %>
+    <%= line_chart @performance_series, suffix: "%", thousands: "," %>
+  <% else %>
+    <div class="empty-state">
+      <p>Record a balance snapshot (<code>rails portfolio:snapshot</code>) to start tracking performance against the S&amp;P 500, Nasdaq 100, US bonds, and total stock market.</p>
+    </div>
+  <% end %>
+</div>
+
+<div class="page-narrow">
+  <h2>Balance History</h2>
+  <div class="card">
+    <table class="holdings-table">
+      <tr>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Gains</th>
+        <th></th>
+      </tr>
+      <tbody id="balances">
+        <%= render @balances %>
+      </tbody>
+    </table>
+  </div>
+  <p><%= button_link "Add Balance", new_balance_path %></p>
+</div>

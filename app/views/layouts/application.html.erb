@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>StockTracker</title>
+    <title>Finance Monitor</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <%= yield :head %>
   </head>
 
   <body>
     <nav class="navbar">
-      <%= link_to "Stock Tracker", root_path, class: "navbar-brand" %>
+      <%= link_to "Finance Monitor", root_path, class: "navbar-brand" %>
       <div class="navbar-group">
+        <%= link_to "Dashboard", dashboard_path, class: ("active" if current_page?(dashboard_path) || current_page?(root_path)) %>
         <%= link_to "Balances", balances_path, class: ("active" if current_page?(balances_path)) %>
+        <%= link_to "Brokerage", brokerage_accounts_path, class: ("active" if current_page?(brokerage_accounts_path)) %>
+        <%= link_to "Banking", banking_accounts_path, class: ("active" if current_page?(banking_accounts_path)) %>
         <%= link_to "Holdings", stock_holdings_path, class: ("active" if current_page?(stock_holdings_path)) %>
-        <%= link_to "Stocks", stocks_path, class: ("active" if current_page?(stocks_path)) %>
-      </div>
-      <div class="navbar-group navbar-group-secondary">
-        <%= link_to "Brokerage", brokerage_accounts_path, class: ("active" if request.path.start_with?("/brokerage")) %>
-        <%= link_to "Banking", banking_accounts_path, class: ("active" if request.path.start_with?("/banking")) %>
       </div>
     </nav>
 
